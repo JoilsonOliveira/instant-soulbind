@@ -1,28 +1,20 @@
-//beng beng
-module.exports = function Soulbind(dispatch) {
+module.exports = function InstantSoulbind(dispatch) {
+	let gameId = null
 	
-	dispatch.hook('S_LOGIN', (event) => {
-		cid = event.cid
-	})
+	dispatch.hook('S_LOGIN', 9, event => { ({gameId} = event) })
 	
-    dispatch.hook('C_BIND_ITEM_BEGIN_PROGRESS', (event) => {
-        setTimeout(() => {
-            dispatch.toServer('C_BIND_ITEM_EXECUTE', {
-                "contractId": event.contractId
-            }),
-			
-			dispatch.toClient('S_CANCEL_CONTRACT', {
-				senderId: event.cid,
+	dispatch.hook('C_BIND_ITEM_BEGIN_PROGRESS', 1, event => {
+		dispatch.toServer('C_BIND_ITEM_EXECUTE', 1, { contractId: event.contractId })
+
+		process.nextTick(() => {
+			dispatch.toClient('S_CANCEL_CONTRACT', 1, {
+				senderId: event.gameId,
 				recipientId: 0,
 				type: 32,
 				id: event.contractId
 			})
-        }, 0)
-    })
-        
-    dispatch.hook('C_BIND_ITEM_EXECUTE', (event) => {
-        return false
-    })
-}
-
+		})
+	})
 		
+	dispatch.hook('C_BIND_ITEM_EXECUTE', 'raw', () => false)
+}
